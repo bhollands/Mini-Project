@@ -7,10 +7,15 @@
 #define F_CPU 16000000
 #include <avr/io.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <util/delay.h>
+#include <math.h>
+#include <string.h>
 #define BAUDRATE 9600 //setting the baurd rate
 #define BAUD_PRESCALLER (((F_CPU/(BAUDRATE* 16UL))) - 1) //defining the pre-scalar
 #include <avr/interrupt.h>
+
 /*
 sudo code: 
 
@@ -19,8 +24,6 @@ serial to other controller
 
 
 */
-
-
 
 unsigned char USART_Char_Recive(){
 	while(!(UCSR0A&(1<<RXC0)));  // Wait to receive data
@@ -79,20 +82,15 @@ void USART_Send(unsigned char data){
 	UDR0 = data; //load new data to transmit
 }
 
-
 ISR(INT0_vect){ //While interupt is pressed
+	//int analogRead = 1111;
 	int analogRead = analogReadA0();//read from the hall effect
-	char* hallEffect[5];
-	sprintf(hallEffect, "%ld", analogRead);
+	char hallEffect[3];
+	sprintf(hallEffect, "%d", analogRead); //int to char array
 	USART_putstring(hallEffect);
-	for(int i =0; i < 6; i++){
-		hallEffect[i] = '0';
-	}
-	//_delay_ms(50);
-	
-
+	USART_Send('|');
+	_delay_ms(50);
 }
-
 
 
 void setup(){
@@ -111,7 +109,9 @@ int main()
 	setup();
 	while(1)
 	{
-		PBpinWrite(5,0);
+		USART_Send('n');
+		_delay_ms(50);
 	}
+	return 0;
 }
 
